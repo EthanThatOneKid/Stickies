@@ -1,4 +1,5 @@
 let EDITABLE_LIST, STICKIES, CURRENT_CREATION, QUILL, userID;
+let canClick = true, currentChoice = -1;
 
 let test = [
   {
@@ -15,6 +16,50 @@ window.onload = init;
 
 async function init() {
   await loadStickiesFromDatabase();
+  initList();
+
+  QUILL = new Quill("#quill-txt-field", {theme: "snow"});
+  QUILL.on("text-change", () => {
+    let txt = QUILL.root.innerHTML;
+
+    updateList(currentChoice, {
+      "inner": txt
+    });
+    // update firebase for current slot
+    // .set("accounts/" + userID + "/current", quill.root.innerHTML)
+  });
+
+  document.getElementById("create-container").style.display = "none";
+}
+
+function chooseSticky() {
+  let cont = document.getElementById("create-container");
+  cont.style.display = "block";
+
+  let stickyCont = document.getElementById("large-sticky-container");
+  stickyCont.innerHTML = "";
+  let sticky = STICKIES[currentChoice].createElement("large");
+  sticky.style.margin = "auto";
+  stickyCont.appendChild(sticky);
+
+  QUILL.root.innerHTML = STICKIES[currentChoice].inner;
+
+  document.body.removeEventListener("mouseup", chooseSticky, true);
+  setTimeout(() => {
+    document.body.addEventListener("click", reset, true);
+  }, 100);
+}
+
+function reset(evt) {
+  if (!hasParentWith(evt.target, "#show-ui")) {
+    document.getElementById("create-container").style.display = "none";
+    document.body.removeEventListener("click", reset, true);
+  }
+}
+
+function initList() {
+  let cont = document.getElementById("media-container");
+  cont.innerHTML = "";
   LIST_EL = document.createElement("ul");
   for (let i = 0; i < STICKIES.length; i++) {
     let sticky = new Sticky(test[i]);
@@ -23,36 +68,30 @@ async function init() {
     li.appendChild(sticky.createElement());
     LIST_EL.appendChild(li);
   }
-  document.getElementById("media-container").appendChild(LIST_EL);
+  cont.appendChild(LIST_EL);
 
   EDITABLE_LIST = Sortable.create(LIST_EL, {
     animation: 150,
     filter: '.js-remove',
-    onFilter: function(evt) {
+    onFilter: (evt) => {
       evt.item.parentNode.removeChild(evt.item);
     },
-    onChoose: function(evt) {
-      reset();
-      darkenScreen(STICKIES[evt.oldIndex].el);
-      document.getElementById("quill-container").style.display = "block";
+    onChoose: (evt) => {
+      currentChoice = evt.oldIndex;
+      document.body.addEventListener("mouseup", chooseSticky, true);
     },
-    onEnd: function(evt) {
-      // after drag
+    onStart: (evt) => {
+      // start drag
+    },
+    onEnd: (evt) => {
+      let was = evt.oldIndex;
+      let is = evt.newIndex;
+      let off = (was > is) ? 1 : 0;
+      let moved = STICKIES[was];
+      STICKIES.splice(was, 1);
+      STICKIES.splice(is - off, 0, moved);
   	}
   });
-
-  QUILL = new Quill("#quill-txt-field", {theme: "snow"});
-  QUILL.on("text-change", () => {
-    // update firebase for current slot
-    // .set("accounts/" + userID + "/current", quill.root.innerHTML)
-  });
-  document.getElementById("quill-container").style.display = "none";
-}
-
-function reset() {
-  document.getElementById("quill-container").style.display = "none";
-  darkenScreen(false);
-  document.body.removeEventListener("mousedown", reset, true);
 }
 
 async function loadStickiesFromDatabase() {
@@ -113,7 +152,30 @@ function darkenScreen(show) {
     document.getElementsByTagName("body")[0].appendChild(div);
 
     setTimeout(() => {
-      document.body.addEventListener("mousedown", reset, true);
-    }, 500);
+      document.body.addEventListener("click", reset, true);
+    }, 100);
   }
+}
+
+function updateList(i, data) {
+  if (data.inner)
+    STICKIES[i].inner = data.inner;
+  if (data.color)
+    STICKIES[i].color = data.color;
+  let stickyCont = document.getElementById("large-sticky-container");
+  stickyCont.innerHTML = "";
+  let sticky = STICKIES[i].createElement("large");
+  sticky.style.margin = "auto";
+  stickyCont.appendChild(sticky);
+
+  EDITABLE_LIST.el.childNodes[i].innerHTML = "";
+  EDITABLE_LIST.el.childNodes[i].appendChild(STICKIES[i].createElement());
+}
+
+// USEFUL FUNCTION FOR REUSE
+// FINDS OUT IF THE EL GIVEN OR ANY PARENT ELS IS A CERTAIN CLASS OR ID
+function hasParentWith(el, flags) {
+  if (el.matches("#show-ui")) return true;
+  else if (el.parentElement) return hasParentWith(el.parentElement, flags);
+  else return false;
 }
