@@ -1,9 +1,9 @@
-let EDITABLE_LIST, STICKIES, CURRENT_CREATION, userID;
+let EDITABLE_LIST, STICKIES, CURRENT_CREATION, QUILL, userID;
 
 let test = [
   {
     inner: "Hello, my name is Gregory.",
-    color: "#ddd"
+    color: "#bbb"
   },
   {
     inner: "Hello, my name is Ethan.",
@@ -34,20 +34,25 @@ async function init() {
     onChoose: function(evt) {
       reset();
       darkenScreen(STICKIES[evt.oldIndex].el);
-      createNew(evt.oldIndex);
+      document.getElementById("quill-container").style.display = "block";
     },
-    onEnd: function (evt) {
-  		// after being sorted
+    onEnd: function(evt) {
+      // after drag
   	}
   });
+
+  QUILL = new Quill("#quill-txt-field", {theme: "snow"});
+  QUILL.on("text-change", () => {
+    // update firebase for current slot
+    // .set("accounts/" + userID + "/current", quill.root.innerHTML)
+  });
+  document.getElementById("quill-container").style.display = "none";
 }
 
 function reset() {
-  console.log("resetting");
-  for (let editor of document.getElementsByClassName("ql-toolbar")) {
-    editor.remove();
-  }
-  //darkenScreen();
+  document.getElementById("quill-container").style.display = "none";
+  darkenScreen(false);
+  document.body.removeEventListener("mousedown", reset, true);
 }
 
 async function loadStickiesFromDatabase() {
@@ -75,29 +80,14 @@ function readSticky(i) {
   let sticky = STICKIES[i].createElement();
 }
 
-function createNew(i) {
-  document.getElementById("create-container").innerHTML = "";
-  let inner = EDITABLE_LIST.el.childNodes[i].innerHTML;
-  let quill = new Quill("#create-container", {theme: "snow"});
-  quill.on("text-change", () => {
-    // update firebase for current slot
-    // .set("accounts/" + userID + "/current", quill.root.innerHTML)
-  });
-  // CREATE A SUBMIT BUTTON AND TETHER IT TO 'quill.root.innerHTML'
-}
-
 function darkenScreen(show) {
-  let el = document.getElementById("mask") || false;
-  let darken = show || false;
-  /*
-  if (el && !darken) {
-    console.log("removing darkness");
-    el.remove();
-  } else if (el && darken) {
-    console.log("remaining dark");
+  let dark = (document.getElementById("mask")) ? true : false;
+  if (!show) {
+    if (dark)
+      document.getElementById("mask").remove();
     return;
-  } else */if (!el) {
-    console.log(show);
+  }
+  if (!dark) {
     let div = document.createElement("div");
     div.id = "mask";
     div.style.background = "white";
@@ -116,9 +106,14 @@ function darkenScreen(show) {
     showContainer.style.left = "50%";
     showContainer.style.transform = "translate(-50%, -50%)";
     // ***
+    show.style.margin = "auto";
     showContainer.appendChild(show);
     mask.appendChild(showContainer);
     div.appendChild(mask);
     document.getElementsByTagName("body")[0].appendChild(div);
+
+    setTimeout(() => {
+      document.body.addEventListener("mousedown", reset, true);
+    }, 500);
   }
 }
