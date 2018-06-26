@@ -1,32 +1,26 @@
-let EDITABLE_LIST, STICKIES, CURRENT_CREATION, QUILL, userID;
+let EDITABLE_LIST, STICKIES, QUILL, userID;
 let canClick = true, currentChoice = -1;
+let pid = getUrlVariables().pid;
+let user_role = "bandit";
 
-let test = [
-  {
-    inner: "Hello, my name is Gregory.",
-    color: "#bbb"
-  },
-  {
-    inner: "Hello, my name is Ethan.",
-    color: "#fff"
-  }
-];
 
 window.onload = init;
 
 async function init() {
   await loadStickiesFromDatabase();
+
+  if (user_role == "bandit") console.log("YOU SHOULDN'T BE HERE! SHOO!");
+  else if (user_role == "shared") console.log("You have had this panel shared with you.");
+  else if (user_role == "owner") console.log("You own this panel.");
+
   initList();
 
   QUILL = new Quill("#quill-txt-field", {theme: "snow"});
   QUILL.on("text-change", () => {
     let txt = QUILL.root.innerHTML;
-
     updateList(currentChoice, {
       "inner": txt
     });
-    // update firebase for current slot
-    // .set("accounts/" + userID + "/current", quill.root.innerHTML)
   });
 
   document.getElementById("create-container").style.display = "none";
@@ -36,13 +30,17 @@ function chooseSticky() {
   let cont = document.getElementById("create-container");
   cont.style.display = "block";
 
+  const sticky = STICKIES[currentChoice];
+
   let stickyCont = document.getElementById("large-sticky-container");
   stickyCont.innerHTML = "";
-  let sticky = STICKIES[currentChoice].createElement("large");
-  sticky.style.margin = "auto";
-  stickyCont.appendChild(sticky);
+  let stickyEl = sticky.createElement("large");
+  stickyEl.style.margin = "auto";
+  stickyCont.appendChild(stickyEl);
+  let col = sticky.color;
+  document.getElementById("create-color").value = col;
 
-  QUILL.root.innerHTML = STICKIES[currentChoice].inner;
+  QUILL.root.innerHTML = sticky.inner;
 
   document.body.removeEventListener("mouseup", chooseSticky, true);
   setTimeout(() => {
@@ -50,10 +48,19 @@ function chooseSticky() {
   }, 100);
 }
 
+function delSticky() {
+  if (user_role == "owner") {
+    reset({passive: true});
+    STICKIES.splice(currentChoice, 1);
+    EDITABLE_LIST.el.childNodes[currentChoice].remove();
+  }
+}
+
 function reset(evt) {
-  if (!hasParentWith(evt.target, "#show-ui")) {
+  if (evt.passive || !hasParentWith(evt.target, "#show-ui")) {
     document.getElementById("create-container").style.display = "none";
     document.body.removeEventListener("click", reset, true);
+    saveStickiesToDatabase();
   }
 }
 
@@ -62,10 +69,9 @@ function initList() {
   cont.innerHTML = "";
   LIST_EL = document.createElement("ul");
   for (let i = 0; i < STICKIES.length; i++) {
-    let sticky = new Sticky(test[i]);
     let li = document.createElement("li");
     li.style.display = "inline-block";
-    li.appendChild(sticky.createElement());
+    li.appendChild(STICKIES[i].el);
     LIST_EL.appendChild(li);
   }
   cont.appendChild(LIST_EL);
@@ -90,71 +96,49 @@ function initList() {
       let moved = STICKIES[was];
       STICKIES.splice(was, 1);
       STICKIES.splice(is - off, 0, moved);
+      saveStickiesToDatabase();
   	}
   });
 }
 
 async function loadStickiesFromDatabase() {
   STICKIES = [];
-  const ref = await test; // db.doc("accounts/" + user_id).get();
-  if (ref) {//ref.exists) {
-    const data = test; // ref.data();
-    let stickies = test // Object.values(Object.parse(data.stickies));
-    for (let i = 0; i < stickies.length; i++) {
-      STICKIES.push(new Sticky(stickies[i]));
+  if (!pid) createErrorMessage(404);
+  const ref = await db.doc("panels/" + pid).get();
+  if (ref.exists) {
+    let data = ref.data();
+    let serializedStickies = data.stickies;
+    let stickies_ = Object.values(JSON.parse(serializedStickies));
+    for (let i = 0; i < stickies_.length; i++) {
+      STICKIES.push(new Sticky(stickies_[i]));
     }
-    CURRENT_CREATION = data.curr;
+    if (data.owner == auth.currentUser.uid) user_role = "owner";
+    else if (new Set(data.shared).has(auth.currentUser.uid)) user_role = "shared";
   } else {
-    throw Error("No data exists for ${userID}");
+    throw Error(`No data exists for ${pid}`);
   }
 }
 
-async function authorizeVisit() {
-  userID = "xxxxxxxxxxxxxxxxxxx";
-}
+async function saveStickiesToDatabase() {
+  console.log("saving");
+  let stickiesBatch = [];
+  for (let i = 0; i < STICKIES.length; i++)
+    stickiesBatch.push(STICKIES[i].data());
+  const serializedStickies = JSON.stringify(stickiesBatch);
 
-function readSticky(i) {
-  let div = document.getElementById("create-container");
-  div.innerHTML = "";
-  let sticky = STICKIES[i].createElement();
-}
-
-function darkenScreen(show) {
-  let dark = (document.getElementById("mask")) ? true : false;
-  if (!show) {
-    if (dark)
-      document.getElementById("mask").remove();
-    return;
-  }
-  if (!dark) {
-    let div = document.createElement("div");
-    div.id = "mask";
-    div.style.background = "white";
-    // ***
-    let mask = document.createElement("div");
-    mask.style.position = "absolute";
-    mask.style.top = 0, mask.style.bottom = 0, mask.style.left = 0, mask.style.right = 0;
-    mask.style.background = "rgba(0, 0, 0, 0.8)";
-    mask.style.zIndex = "99";
-    // ***
-    let showContainer = document.createElement("div");
-    showContainer.style.position = "relative";
-    showContainer.style.zIndex = "100";
-    showContainer.style.margin = 0;
-    showContainer.style.top = "50%";
-    showContainer.style.left = "50%";
-    showContainer.style.transform = "translate(-50%, -50%)";
-    // ***
-    show.style.margin = "auto";
-    showContainer.appendChild(show);
-    mask.appendChild(showContainer);
-    div.appendChild(mask);
-    document.getElementsByTagName("body")[0].appendChild(div);
-
-    setTimeout(() => {
-      document.body.addEventListener("click", reset, true);
-    }, 100);
-  }
+  const ref = db.doc("panels/" + pid);
+  return db.runTransaction(transaction => {
+    return transaction.get(ref).then(doc => {
+      if (doc.exists) {
+        let data = doc.data();
+        data.stickies = serializedStickies;
+        transaction.update(ref, data);
+        return data;
+      } else {
+        return Promise.reject;
+      }
+    })
+  }).then(() => console.log(`updated ${pid} panel`)).catch(err => console.error(error));
 }
 
 function updateList(i, data) {
@@ -170,6 +154,52 @@ function updateList(i, data) {
 
   EDITABLE_LIST.el.childNodes[i].innerHTML = "";
   EDITABLE_LIST.el.childNodes[i].appendChild(STICKIES[i].createElement());
+}
+
+function createBlankSticky() {
+  let sticky = new Sticky({
+    inner: rndMsg(),
+    color: "#FAEE76"
+  });
+  STICKIES.push(sticky);
+
+  let li = document.createElement("li");
+  li.style.display = "inline-block";
+  li.appendChild(sticky.el);
+  EDITABLE_LIST.el.appendChild(li);
+
+  currentChoice = STICKIES.length - 1;
+  chooseSticky();
+}
+
+function getUrlVariables() {
+  let query = window.location.search.substring(1);
+  let vars = query.split('&'), result = {}, pair;
+  for (let i = 0; i < vars.length; i++) {
+    pair = vars[i].split('=');
+    result[pair[0]] = pair[1];
+  }
+  return result;
+}
+
+function createErrorMessage(n) {
+  const ERROR = {
+    404: "This panel cannot be found."
+  };
+  document.getElementById("error-message-container").innerHTML = `${n}: ${ERROR[n]}`;
+  document.getElementById("big-error-container").style.display = "block";
+}
+function rndMsg() {
+  let msgs = [
+    "How are you enjoying Stickies?",
+    "You are so cool!",
+    "You\'re just amazing!",
+    "Thank you for using Stickies!",
+    "You are a GOAT; Greatest of all time!",
+    "How\'s your day?",
+    "I bet you're making all sorts of progress today!"
+  ];
+  return msgs[Math.floor(Math.random() * msgs.length)];
 }
 
 // USEFUL FUNCTION FOR REUSE

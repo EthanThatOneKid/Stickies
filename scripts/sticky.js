@@ -29,6 +29,9 @@ class Sticky {
     return div;
   }
   data() {
-    return {inner, color};
+    return {
+      inner: this.inner,
+      color: this.color
+    };
   }
 }

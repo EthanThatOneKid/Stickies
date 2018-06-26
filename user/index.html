@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <title>Stickies | User</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase.js"></script>
+  <script src="../scripts/firebase-init.js"></script>
+  <script src="../scripts/auth.js"></script>
+  <script>
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      console.log(user);
+      document.getElementById("dn-in").style.display = "block";
+      document.getElementById("signout-btn").style.display = "block";
+      document.getElementById("email-in").style.display = "none";
+      document.getElementById("pass-in").style.display = "none";
+      document.getElementById("signup-btn").style.display = "none";
+      document.getElementById("login-btn").style.display = "none";
+    } else {
+      console.log("logged out");
+      document.getElementById("dn-in").style.display = "none";
+      document.getElementById("signout-btn").style.display = "none";
+      document.getElementById("email-in").style.display = "block";
+      document.getElementById("pass-in").style.display = "block";
+      document.getElementById("signup-btn").style.display = "block";
+      document.getElementById("login-btn").style.display = "block";
+    }
+  });
+  </script>
+</head>
+<body>
+  <h1>User</h1>
+  <input id="dn-in" placeholder="Display Name" type="text" onchange="changeDisplayName()" style="display:none;">
+  <br>
+  <input id="email-in" placeholder="email" type="text">
+  <br>
+  <input id="pass-in" olaceholder="password" type="password">
+  <br>
+  <button id="login-btn" onclick="login()">login</button>
+  <button id="signup-btn" onclick="signup()">signup</button>
+  <button onclick="signout()" id="signout-btn" style="display:none;">signout</button>
+  <p id="err-container" style="color:red"></p>
+  <a href="../">Return to Console</a>
+
+  <p id="success-msg" style="display:none;">Successfully logged in</p>
+  <p id="failure-msg" style="display:none;">Failure to log in</p>
+  </div>
+</body>
+</html>

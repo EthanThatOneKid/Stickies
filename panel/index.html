@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <title>Stickies | Panel</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/quill.snow.css">
+  <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase.js"></script>
+  <script src="../libraries/quill.js"></script>
+  <script src="../libraries/sortable.js"></script>
+  <script src="../scripts/firebase-init.js"></script>
+  <script src="../scripts/auth.js"></script>
+  <script src="../scripts/sticky.js"></script>
+  <script src="../scripts/main.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Stickies</h1>
+  </header>
+
+  <button onclick="createBlankSticky()">Create</button>
+  <div id="media-container"></div>
+
+  <div id="create-container" style="background:white;display:none;">
+    <div id="mask" style="position:absolute;top:0;bottom:0;left:0;right:0;background:rgba(0,0,0,0.8);z-index:99;">
+      <div id="show-ui" style="width:50vw;padding:2.5vw;background:white;border-radius:10px;position:relative;z-index:100;margin:0;top:50%;left:50%;transform:translate(-50%,-50%);">
+        <div id="large-sticky-container"></div>
+        <br>
+        <div id="quill-container">
+          <div id="quill-txt-field"></div>
+        </div>
+        <input id="create-color" type="color" value="#FAEE76" onchange="updateList(currentChoice, {color: this.value});">
+        <button onclick="reset({passive:true});">Stick</button>
+        <button onclick="delSticky()">Peel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="big-error-container" style="background:white;display:none;">
+    <div id="maskE" style="position:absolute;top:0;bottom:0;left:0;right:0;background:rgba(0,0,0,0.8);z-index:99;">
+      <div id="show-uiE" style="width:50vw;padding:2.5vw;background:white;border-radius:10px;position:relative;z-index:100;margin:0;top:50%;left:50%;transform:translate(-50%,-50%);">
+        <div id="error-message-container"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

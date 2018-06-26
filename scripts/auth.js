@@ -2,18 +2,34 @@ function login() {
   const em = document.getElementById("email-in").value;
   const pw = document.getElementById("pass-in").value;
   auth.signInWithEmailAndPassword(em, pw)
-    .catch(e => {
-      console.log(e);
-    });
+    .catch(e => document.getElementById("err-container").innerHTML = e.message);
 }
 
 function signup() {
   const em = document.getElementById("email-in").value;
   const pw = document.getElementById("pass-in").value;
   auth.createUserWithEmailAndPassword(em, pw)
-    .catch(e => {
-    console.log(e);
-    });
+    .then(() => {
+      db.doc("accounts/" + auth.currentUser.uid).set({
+        owned: [],
+        shared: []
+      });
+    })
+    .catch(e => document.getElementById("err-container").innerHTML = e.message);
+}
+
+function signout() {
+  auth.signOut()
+    .catch(e => document.getElementById("err-container").innerHTML = e.message);
+}
+
+function rndKey(len = 28) {
+  let result = "";
+  let possible = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+  for (let i = 0; i < len; i++) {
+    result += possible[Math.floor(Math.random() * possible.length)];
+  }
+  return result;
 }
 
 function changeDisplayName() {
@@ -22,12 +38,3 @@ function changeDisplayName() {
     displayName: dn
   });
 }
-
-auth.onAuthStateChanged(user => {
-  if (user) {
-    console.log(user);
-    document.getElementById("dn-in").style.display = "block";
-  } else {
-    console.log("user is not signed in");
-  }
-});
