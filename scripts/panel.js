@@ -6,14 +6,25 @@ class Panel {
     this.el = this.createElement();
   }
   createElement() {
+    let a = document.createElement("a");
+    a.href = `panel/?pid=${this.pid}`;
+
     let div = document.createElement("div");
     div.style.border = "solid 1px black";
-    div.style.borderRadius = "2vw";
-    div.style.height = "10vw";
-    div.style.width = "5vw";
+    div.style.height = "200px";
+    div.style.width = "200px";
+    div.style.margin = "20px";
     div.style.overflow = "hidden";
-    div.onclick = () => location.href = `panel/?pid=${this.pid}`;
-    div.innerHTML = this.title;
-    return div;
+
+    let title = document.createElement("h1");
+    title.innerHTML = this.title;
+
+    let owner = document.createElement("small");
+    owner.innerHTML = `owner: ${this.owner}`;
+
+    div.appendChild(title);
+    div.appendChild(owner);
+    a.appendChild(div);
+    return a;
   }
 }

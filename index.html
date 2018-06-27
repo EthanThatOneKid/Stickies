@@ -13,18 +13,46 @@
   <script src="scripts/console.js"></script>
 </head>
 <body>
-  <h1>Stickies</h1>
-  <a id="user-lnk" href="/user">Settings</a>
+  <header id="page-header">
+    <table style="width:100%; vertical-align:middle;"><tr><td align="center">
+			<h1 id="page-title" style="vertical-align:middle;">Stickies</h1>
+      <p style="background-color:white;border:1px solid black;display:inline-block;vertical-align:bottom;">console</p>
+		</td><td align="center">
+			<div style="horizontal-align:right; width:200px;">
+        <a id="user-settings" href="/user">X</a>
+        <p id="panel-count"></p>
+      </div>
+		</td></tr></table>
+  </header>
+
+  <!--
   <p id="success-msg" style="display:none;">Successfully logged in</p>
   <p id="failure-msg" style="display:none;">Failure to log in</p>
+  -->
 
   <button onclick="createNewPanel()">New Panel</button>
 
-  <div id="media-container">
-    <label>owned</label>
-    <div id="owned-panels"></div>
-    <label>shared</label>
-    <div id="shared-panels"></div>
-  </div>
+  <ul style="margin:0;"><li style="display:inline-block">
+    <table style="padding:50px;padding-top:0px;">
+      <tr><td rowspan="2" style="vertical-align:top;">
+        <hr class="vert-line">
+      </td><td style="vertical-align:top;">
+        <h2 class="subheading">my panels</h2>
+      </td></tr><tr><td>
+        <div id="owned-panels" class="loader"></div>
+      </td></tr>
+    </table>
+  </li><li style="display:inline-block;">
+    <table style="padding: 50px;">
+      <tr><td rowspan="2" style="vertical-align:top;">
+        <hr class="vert-line">
+      </td><td style="vertical-align:top;">
+        <h2 class="subheading">shared with me</h2>
+      </td></tr><tr><td>
+        <div id="shared-panels" class="loader"></div>
+      </td></tr>
+    </table>
+  </li></ul>
+
 </body>
 </html>

@@ -2,14 +2,15 @@
 <html>
 <head>
   <title>Stickies | Panel</title>
-  <link rel="stylesheet" href="../assets/style.css">
-  <link rel="stylesheet" href="../assets/quill.snow.css">
-  <link rel="stylesheet" href="../assets/ply.css">
+  <link   rel="stylesheet" href="../assets/style.css">
+  <link   rel="stylesheet" href="../assets/quill.snow.css">
+  <link   rel="stylesheet" href="../assets/ply.css">
   <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase.js"></script>
   <script src="../libraries/ply.js"></script>
   <script src="../libraries/quill.js"></script>
   <script src="../libraries/sortable.js"></script>
   <script src="../scripts/firebase-init.js"></script>
+  <script src="../scripts/color.js"></script>
   <script src="../scripts/auth.js"></script>
   <script src="../scripts/sticky.js"></script>
   <script src="../scripts/main.js"></script>
@@ -30,7 +31,7 @@
         <div id="large-sticky-container"></div>
         <br>
         <div id="quill-container">
-          <div id="quill-txt-field"></div>
+          <div id="quill-txt-field" style="overflow-y:scroll;height:9ex;"></div>
         </div>
         <input id="create-color" type="color" value="#FAEE76" onchange="updateList(currentChoice, {color: this.value});">
         <button onclick="reset({passive:true});">Stick</button>

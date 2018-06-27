@@ -14,7 +14,11 @@ async function init() {
 
   initList();
 
-  QUILL = new Quill("#quill-txt-field", {theme: "snow"});
+  QUILL = new Quill("#quill-txt-field", {
+    theme: "snow",
+    placeholder: "jot down a note",
+    bounds: document.getElementById("quill-container")
+  });
   QUILL.on("text-change", () => {
     let txt = QUILL.root.innerHTML;
     updateList(currentChoice, {
@@ -30,7 +34,7 @@ function chooseSticky() {
   cont.style.display = "block";
   if (user_role !== "owner") document.getElementById("del-sticky-btn").style.disply = "none";
 
-  const sticky = STICKIES[currentChoice];
+  const sticky = STICKIES[currentChoice].copy();
 
   let stickyCont = document.getElementById("large-sticky-container");
   stickyCont.innerHTML = "";
@@ -92,10 +96,9 @@ function initList() {
     onEnd: (evt) => {
       let was = evt.oldIndex;
       let is = evt.newIndex;
-      let off = (was > is) ? 1 : 0;
       let moved = STICKIES[was];
       STICKIES.splice(was, 1);
-      STICKIES.splice(is - off, 0, moved);
+      STICKIES.splice(is, 0, moved);
       saveStickiesToDatabase();
   	}
   });
@@ -331,6 +334,15 @@ function renamePanel() {
     });
   }
 };
+
+function organizeStickiesByColor() {
+  STICKIES.sort((a, b) => {
+    let colorA = new Color(a.color.split("#")[1]);
+    let colorB = new Color(b.color.split("#")[1]);
+    return colorA.hue - colorB.hue;
+  });
+  reset({passive: true});
+}
 
 function rndMsg() {
   let msgs = [
