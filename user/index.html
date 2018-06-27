@@ -10,40 +10,46 @@
   auth.onAuthStateChanged(user => {
     if (user) {
       console.log(user);
-      document.getElementById("dn-in").style.display = "block";
       document.getElementById("signout-btn").style.display = "block";
-      document.getElementById("email-in").style.display = "none";
-      document.getElementById("pass-in").style.display = "none";
+      document.getElementById("success-msg").style.display = "inline-block";
+      document.getElementById("failure-msg").style.display = "none";
+      document.getElementById("signin-toggle").style.display = "none";
       document.getElementById("signup-btn").style.display = "none";
       document.getElementById("login-btn").style.display = "none";
+      document.getElementById("user-title").innerHTML = `Stickies User: ${user.email.split("@")[0]}`;
     } else {
       console.log("logged out");
-      document.getElementById("dn-in").style.display = "none";
       document.getElementById("signout-btn").style.display = "none";
-      document.getElementById("email-in").style.display = "block";
-      document.getElementById("pass-in").style.display = "block";
+      document.getElementById("success-msg").style.display = "none";
+      document.getElementById("signin-toggle").style.display = "block";
       document.getElementById("signup-btn").style.display = "block";
       document.getElementById("login-btn").style.display = "block";
+      document.getElementById("failure-msg").style.display = "inline-block";
+      document.getElementById("user-title").innerHTML = "Stickies User";
     }
   });
   </script>
 </head>
 <body>
-  <h1>User</h1>
-  <input id="dn-in" placeholder="Display Name" type="text" onchange="changeDisplayName()" style="display:none;">
-  <br>
-  <input id="email-in" placeholder="email" type="text">
-  <br>
-  <input id="pass-in" olaceholder="password" type="password">
-  <br>
-  <button id="login-btn" onclick="login()">login</button>
-  <button id="signup-btn" onclick="signup()">signup</button>
-  <button onclick="signout()" id="signout-btn" style="display:none;">signout</button>
-  <p id="err-container" style="color:red"></p>
-  <a href="../">Return to Console</a>
-
-  <p id="success-msg" style="display:none;">Successfully logged in</p>
-  <p id="failure-msg" style="display:none;">Failure to log in</p>
+  <table style="padding:1vw;border:1px solid black;margin:0;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);"><tr><td style="padding:0.5vw;">
+    <h1 id="user-title">Stickies User</h1>
+    <div id="signin-toggle">
+      <label>email: </label><input id="email-in" placeholder="email" type="text"><br>
+      <label>password: </label><input id="pass-in" placeholder="password" type="password">
+      <br>
+    </div>
+  </td></tr><tr><td style="padding:0.5vw;">
+    <button id="login-btn" onclick="login()">login</button><br>
+    <button id="signup-btn" onclick="signup()">signup</button>
+    <button onclick="signout()" id="signout-btn" style="display:none;">signout</button>
+    <br>
+    <a href="../">Return to Console</a>
+  </td></tr><tr><td style="padding:0.5vw;">
+    <p id="err-container" style="color:red"></p>
+    <label style="display:inline-block">status: </label>
+    <p id="success-msg" style="display:none;color:green;">Successfully logged in</p>
+    <p id="failure-msg" style="display:none;color:red;">Not logged in</p>
+  </td></tr></table>
   </div>
 </body>
 </html>

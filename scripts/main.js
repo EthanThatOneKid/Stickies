@@ -111,7 +111,7 @@ async function loadStickiesFromDatabase() {
   if (ref.exists) {
     let data = ref.data();
     panelTitle = data.title;
-    document.getElementById("panel-title").innerHTML = panelTitle;
+    document.getElementById("page-title").innerHTML = panelTitle;
     let serializedStickies = data.stickies;
     let stickies_ = Object.values(JSON.parse(serializedStickies));
     for (let i = 0; i < stickies_.length; i++) {
@@ -119,7 +119,10 @@ async function loadStickiesFromDatabase() {
     }
     if (data.owner == auth.currentUser.email) user_role = "owner";
     else if (new Set(data.shared).has(auth.currentUser.email)) user_role = "shared";
+    document.getElementById("user-settings").innerHTML = auth.currentUser.displayName[0];
+    document.getElementById("status-container").innerHTML = `role: ${user_role}`;
   } else {
+    createErrorMessage(404);
     throw Error(`No data exists for ${pid}`);
   }
 }
@@ -214,6 +217,7 @@ function deletePanel() {
       }).then(() => {
         // panel has been perma-deleted
         console.log(`deleted ${pid}`);
+        window.location.href = "../";
       }).catch(err => {
         // panel fails to be deleted
         console.error(err);
@@ -325,7 +329,7 @@ function renamePanel() {
         })
       }).then(() => {
         // panel has been shared
-        document.getElementById("panel-title").innerHTML = panelTitle;
+        document.getElementById("page-title").innerHTML = panelTitle;
         console.log(`renamed ${pid} to ${panelTitle}`);
       }).catch(err => {
         // user does not exist

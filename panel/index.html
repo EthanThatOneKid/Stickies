@@ -16,13 +16,23 @@
   <script src="../scripts/main.js"></script>
 </head>
 <body>
-  <header>
-    <h1 id="panel-title" onclick="renamePanel()">Stickies</h1>
+
+  <header id="page-header">
+    <table style="width:100%; vertical-align:middle;"><tr><td align="center">
+			<h1 id="page-title" onclick="renamePanel()" style="vertical-align:middle;cursor:pointer;">Stickies</h1>
+      <p style="background-color:white;border:1px solid black;display:inline-block;vertical-align:bottom;">panel</p>
+      <button onclick="sharePanel()">Share</button>
+      <button onclick="deletePanel()">Delete Panel</button>
+		</td><td align="center">
+			<div style="horizontal-align:right; width:200px;">
+        <a id="user-settings" href="../user">X</a>
+        <p id="status-container"></p>
+      </div>
+		</td></tr></table>
   </header>
 
-  <button onclick="createBlankSticky()">Create</button>
-  <button onclick="sharePanel()">Share</button>
-  <button onclick="deletePanel()">Delete Panel</button>
+  <button onclick="createBlankSticky()">New Sticky</button>
+  
   <div id="media-container"></div>
 
   <div id="create-container" style="background:white;display:none;">

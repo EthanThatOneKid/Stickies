@@ -24,7 +24,7 @@ body {
   -webkit-text-stroke-color: black;
 }
 
-#panel-count {
+#panel-count, #status-container {
   color: white;
 }
 
@@ -70,6 +70,14 @@ button:hover {
   height: 60vh;
   width: 4px;
   background-color: black;
+}
+
+.foot {
+  background-color: #ddd;
+  bottom: 0px;
+  position: fixed;
+  width: 100%;
+  text-align: right;
 }
 
 .loader {

@@ -12,7 +12,7 @@
   <script src="scripts/panel.js"></script>
   <script src="scripts/console.js"></script>
 </head>
-<body>
+<body id="top">
   <header id="page-header">
     <table style="width:100%; vertical-align:middle;"><tr><td align="center">
 			<h1 id="page-title" style="vertical-align:middle;">Stickies</h1>
@@ -25,12 +25,8 @@
 		</td></tr></table>
   </header>
 
-  <!--
-  <p id="success-msg" style="display:none;">Successfully logged in</p>
-  <p id="failure-msg" style="display:none;">Failure to log in</p>
-  -->
-
   <button onclick="createNewPanel()">New Panel</button>
+  <br><br>
 
   <ul style="margin:0;"><li style="display:inline-block">
     <table style="padding:50px;padding-top:0px;">
@@ -38,7 +34,7 @@
         <hr class="vert-line">
       </td><td style="vertical-align:top;">
         <h2 class="subheading">my panels</h2>
-      </td></tr><tr><td>
+      </td></tr><tr><td style="vertical-align:top;" align="center">
         <div id="owned-panels" class="loader"></div>
       </td></tr>
     </table>
@@ -48,11 +44,19 @@
         <hr class="vert-line">
       </td><td style="vertical-align:top;">
         <h2 class="subheading">shared with me</h2>
-      </td></tr><tr><td>
+      </td></tr><tr><td style="vertical-align:top;" align="center">
         <div id="shared-panels" class="loader"></div>
       </td></tr>
     </table>
   </li></ul>
+
+  <footer class="foot">
+		<small>EthanThatOneKid &copy2018</small> |
+    <small>gmail: <a href='mailto:ethan.r.davidson@gmail.com?Subject=Hello%2C%20EthanThatOneKid'>ethan.r.davidson@gmail.com</a></small> |
+		<small>home: <a href='http://ethandavidson.com'>ethandavidson.com</a></small> |
+    <small><a href='#top'>top &uarr;</a></small> |
+		<small>&#10084;</small>
+  </footer>
 
 </body>
 </html>

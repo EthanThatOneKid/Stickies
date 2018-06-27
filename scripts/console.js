@@ -79,6 +79,8 @@ async function loadPanelsFromDatabase() {
       }).el);
       ownedListEl.appendChild(gimmeLi);
     }
+    let noneP = document.createElement("p");
+    noneP.innerHTML = "none";
     ownedListEl.style.margin = 0;
     sharedListEl.style.margin = 0;
     ownedListEl.style.padding = 0;
@@ -86,17 +88,26 @@ async function loadPanelsFromDatabase() {
 
     let ownedCont = document.getElementById("owned-panels");
     let sharedCont = document.getElementById("shared-panels");
-    ownedCont.appendChild(ownedListEl);
-    sharedCont.appendChild(sharedListEl);
+    if (owned_.length > 0) ownedCont.appendChild(ownedListEl);
+    else ownedCont.appendChild(noneP);
+    if (shared_.length > 0) sharedCont.appendChild(sharedListEl);
+    else sharedCont.appendChild(noneP);
     ownedCont.className = ownedCont.className.replace(/\bloader\b/g, "");
     sharedCont.className = sharedCont.className.replace(/\bloader\b/g, "");
     document.getElementById("panel-count").innerHTML = `panels: ${panelCount}/5`;
+    if (panelCount >= 5) document.getElementById("panel-count").style.color = "red";
   } else {
     throw Error(`Error showing data from ${auth.currentUser.email}`);
   }
 }
 
 function createNewPanel() {
+  if (panelCount >= 5) {
+    Ply.dialog("confirm",
+      "You have reached your maximum amount of panel real-estate. To solve this, delete an old one or purchase some new ones."
+    );
+    return;
+  }
   Ply.dialog("prompt", {
     title: "Title Panel",
     form: {title: "title of panel"}
@@ -110,11 +121,20 @@ function createNewPanel() {
       shared: [],
       stickies: JSON.stringify([])
     });
+
+    const panelRef = await db.doc("panels/" + key).get();
     let gimmeLi = document.createElement("li");
     gimmeLi.style.display = "inline-block";
-    ownedList.push(new Panel({pid: key}));
-    gimmeLi.appendChild(ownedList[ownedList.length - 1].el);
+    gimmeLi.appendChild(new Panel({
+      title: panelRef.data().title,
+      owner: panelRef.data().owner,
+      pid: key
+    }).el);
     ownedSortableList.el.appendChild(gimmeLi);
+
+    panelCount++;
+    document.getElementById("panel-count").innerHTML = `panels: ${panelCount}/5`;
+    if (panelCount >= 5) document.getElementById("panel-count").style.color = "red";
 
     const ref = db.doc("accounts/" + auth.currentUser.email);
     db.runTransaction(transaction => {

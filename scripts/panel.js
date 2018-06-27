@@ -7,6 +7,7 @@ class Panel {
   }
   createElement() {
     let a = document.createElement("a");
+    a.style.textDecoration = "none";
     a.href = `panel/?pid=${this.pid}`;
 
     let div = document.createElement("div");
@@ -20,7 +21,8 @@ class Panel {
     title.innerHTML = this.title;
 
     let owner = document.createElement("small");
-    owner.innerHTML = `owner: ${this.owner}`;
+    let lnk = `<a href=\'mailto:${this.owner}?Subject=CHECK%20OUT%20STICKIES\'>${this.owner.split("@")[0]}</a>`;
+    owner.innerHTML = `owner: ${lnk}`;
 
     div.appendChild(title);
     div.appendChild(owner);

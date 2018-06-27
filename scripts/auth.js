@@ -2,6 +2,7 @@ function login() {
   const em = document.getElementById("email-in").value;
   const pw = document.getElementById("pass-in").value;
   auth.signInWithEmailAndPassword(em, pw)
+    .then(() => document.getElementById("err-container").style.display = "none")
     .catch(e => document.getElementById("err-container").innerHTML = e.message);
 }
 
@@ -14,6 +15,7 @@ function signup() {
         owned: [],
         shared: []
       });
+      document.getElementById("err-container").style.display = "none";
     })
     .catch(e => document.getElementById("err-container").innerHTML = e.message);
 }
