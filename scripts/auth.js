@@ -10,7 +10,7 @@ function signup() {
   const pw = document.getElementById("pass-in").value;
   auth.createUserWithEmailAndPassword(em, pw)
     .then(() => {
-      db.doc("accounts/" + auth.currentUser.uid).set({
+      db.doc("accounts/" + em).set({
         owned: [],
         shared: []
       });

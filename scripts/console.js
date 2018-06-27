@@ -41,7 +41,7 @@ function initMedia() {
 
 async function loadPanelsFromDatabase() {
   ownedList = sharedList = [];
-  const ref = await db.doc("accounts/" + auth.currentUser.uid).get();
+  const ref = await db.doc("accounts/" + auth.currentUser.email).get();
   if (ref.exists) {
     const data = ref.data();
     const owned_ = data.owned;
@@ -65,7 +65,7 @@ async function loadPanelsFromDatabase() {
     document.getElementById("owned-panels").appendChild(ownedListEl);
     document.getElementById("shared-panels").appendChild(sharedListEl);
   } else {
-    throw Error(`Error showing data from ${auth.currentUser.uid}`);
+    throw Error(`Error showing data from ${auth.currentUser.email}`);
   }
 }
 
@@ -78,7 +78,7 @@ function createNewPanel() {
 
     // create blank panel and render to screen
     await db.doc("panels/" + key).set({
-      owner: auth.currentUser.uid,
+      owner: auth.currentUser.email,
       title: ui.data.title,
       shared: [],
       stickies: JSON.stringify([])
@@ -89,7 +89,7 @@ function createNewPanel() {
     gimmeLi.appendChild(ownedList[ownedList.length - 1].el);
     ownedSortableList.el.appendChild(gimmeLi);
 
-    const ref = db.doc("accounts/" + auth.currentUser.uid);
+    const ref = db.doc("accounts/" + auth.currentUser.email);
     db.runTransaction(transaction => {
       return transaction.get(ref).then(doc => {
         if (doc.exists) {

@@ -4,7 +4,9 @@
   <title>Stickies | Panel</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="stylesheet" href="../assets/quill.snow.css">
+  <link rel="stylesheet" href="../assets/ply.css">
   <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase.js"></script>
+  <script src="../libraries/ply.js"></script>
   <script src="../libraries/quill.js"></script>
   <script src="../libraries/sortable.js"></script>
   <script src="../scripts/firebase-init.js"></script>
@@ -14,10 +16,12 @@
 </head>
 <body>
   <header>
-    <h1>Stickies</h1>
+    <h1 id="panel-title" onclick="renamePanel()">Stickies</h1>
   </header>
 
   <button onclick="createBlankSticky()">Create</button>
+  <button onclick="sharePanel()">Share</button>
+  <button onclick="deletePanel()">Delete Panel</button>
   <div id="media-container"></div>
 
   <div id="create-container" style="background:white;display:none;">
@@ -30,7 +34,7 @@
         </div>
         <input id="create-color" type="color" value="#FAEE76" onchange="updateList(currentChoice, {color: this.value});">
         <button onclick="reset({passive:true});">Stick</button>
-        <button onclick="delSticky()">Peel</button>
+        <button id="del-sticky-btn" onclick="delSticky()">Peel</button>
       </div>
     </div>
   </div>

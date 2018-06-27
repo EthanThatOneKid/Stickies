@@ -1,15 +1,14 @@
 let EDITABLE_LIST, STICKIES, QUILL, userID;
 let canClick = true, currentChoice = -1;
-let pid = getUrlVariables().pid;
+let pid = getUrlVariables().pid, panelTitle;
 let user_role = "bandit";
-
 
 window.onload = init;
 
 async function init() {
   await loadStickiesFromDatabase();
 
-  if (user_role == "bandit") console.log("YOU SHOULDN'T BE HERE! SHOO!");
+  if (user_role == "bandit") createErrorMessage(401);
   else if (user_role == "shared") console.log("You have had this panel shared with you.");
   else if (user_role == "owner") console.log("You own this panel.");
 
@@ -29,6 +28,7 @@ async function init() {
 function chooseSticky() {
   let cont = document.getElementById("create-container");
   cont.style.display = "block";
+  if (user_role !== "owner") document.getElementById("del-sticky-btn").style.disply = "none";
 
   const sticky = STICKIES[currentChoice];
 
@@ -107,13 +107,15 @@ async function loadStickiesFromDatabase() {
   const ref = await db.doc("panels/" + pid).get();
   if (ref.exists) {
     let data = ref.data();
+    panelTitle = data.title;
+    document.getElementById("panel-title").innerHTML = panelTitle;
     let serializedStickies = data.stickies;
     let stickies_ = Object.values(JSON.parse(serializedStickies));
     for (let i = 0; i < stickies_.length; i++) {
       STICKIES.push(new Sticky(stickies_[i]));
     }
-    if (data.owner == auth.currentUser.uid) user_role = "owner";
-    else if (new Set(data.shared).has(auth.currentUser.uid)) user_role = "shared";
+    if (data.owner == auth.currentUser.email) user_role = "owner";
+    else if (new Set(data.shared).has(auth.currentUser.email)) user_role = "shared";
   } else {
     throw Error(`No data exists for ${pid}`);
   }
@@ -182,13 +184,154 @@ function getUrlVariables() {
   return result;
 }
 
+function deletePanel() {
+  Ply.dialog("confirm",
+    (user_role == "owner") ? "Are you sure you want to delete this entire panel? (It will not be archived; it will be forever gone)" : "Are you sure you want to remove this panel from your shared list?"
+  ).done(async ui => {
+    if (user_role == "owner") {
+      // remove doc from panels/pid
+      await db.doc("panels/" + pid).delete()
+        .then(() => console.log("Deleted " + pid))
+        .catch((err) => console.error(err));
+
+      // remove from owned[]
+      const ref = db.doc("accounts/" + auth.currentUser.email);
+      await db.runTransaction(transaction => {
+        return transaction.get(ref).then(doc => {
+          if (doc.exists) {
+            let data = doc.data();
+            let panelIndex = data.owned.indexOf(pid);
+            if (panelIndex > -1) data.owned.splice(panelIndex, 1);
+            transaction.update(ref, data);
+            return data;
+          } else {
+            return Promise.reject;
+          }
+        })
+      }).then(() => {
+        // panel has been perma-deleted
+        console.log(`deleted ${pid}`);
+      }).catch(err => {
+        // panel fails to be deleted
+        console.error(err);
+      });
+    } else if (user_role == "shared") {
+      // remove from shared array
+      const ref = db.doc("accounts/" + auth.currentUser.email);
+      await db.runTransaction(transaction => {
+        return transaction.get(ref).then(doc => {
+          if (doc.exists) {
+            let data = doc.data();
+            let panelIndex = data.shared.indexOf(pid);
+            if (panelIndex > -1) data.shared.splice(panelIndex, 1);
+            transaction.update(ref, data);
+            return data;
+          } else {
+            return Promise.reject;
+          }
+        })
+      }).then(() => {
+        // panel has been perma-deleted
+        console.log(`removed ${pid} from shared list`);
+      }).catch(err => {
+        // panel fails to be deleted
+        console.error(err);
+      });
+    }
+  });
+}
+
+function sharePanel() {
+  Ply.dialog("prompt", {
+    title: "Share this Panel",
+    form: {email: "email of friend"}
+  }).done(async ui => {
+    const email = ui.data.email;
+
+    // adding panel to friend's shared list
+    const friendRef = db.doc("accounts/" + email);
+    await db.runTransaction(transaction => {
+      return transaction.get(friendRef).then(doc => {
+        if (doc.exists) {
+          let data = doc.data();
+          data.shared.push(pid);
+          transaction.update(friendRef, data);
+          return data;
+        } else {
+          return Promise.reject;
+        }
+      })
+    }).then(() => {
+      // panel has been shared
+      console.log(`pushed panel to ${email}\'s shared array.`);
+    }).catch(err => {
+      // user does not exist
+      console.error(err);
+    });
+
+    // adding friend's email to panel's shared list
+    const panelRef = db.doc("panels/" + pid);
+    await db.runTransaction(transaction => {
+      return transaction.get(panelRef).then(doc => {
+        if (doc.exists) {
+          let data = doc.data();
+          data.shared.push(email);
+          transaction.update(panelRef, data);
+          return data;
+        } else {
+          return Promise.reject;
+        }
+      })
+    }).then(() => {
+      // panel has been shared
+      console.log(`pushed ${email} to shared array`);
+    }).catch(err => {
+      // user does not exist
+      console.error(err);
+    });
+  });
+}
+
 function createErrorMessage(n) {
   const ERROR = {
+    401: "You are unauthorized to view this panel",
     404: "This panel cannot be found."
   };
   document.getElementById("error-message-container").innerHTML = `${n}: ${ERROR[n]}`;
   document.getElementById("big-error-container").style.display = "block";
 }
+
+function renamePanel() {
+  if (user_role == "owner") {
+    Ply.dialog("prompt", {
+      title: "Rename this Panel",
+      form: {name: {label: "name this panel", value: panelTitle}}
+    }).done(async ui => {
+      panelTitle = ui.data.name;
+      const panelRef = db.doc("panels/" + pid);
+      await db.runTransaction(transaction => {
+        return transaction.get(panelRef).then(doc => {
+          if (doc.exists) {
+            let data = doc.data();
+            data.title = panelTitle;
+            transaction.update(panelRef, data);
+            return data;
+          } else {
+            return Promise.reject;
+          }
+        })
+      }).then(() => {
+        // panel has been shared
+        document.getElementById("panel-title").innerHTML = panelTitle;
+        console.log(`renamed ${pid} to ${panelTitle}`);
+      }).catch(err => {
+        // user does not exist
+        console.error(err);
+      });
+    });
+  }
+};
+
 function rndMsg() {
   let msgs = [
     "How are you enjoying Stickies?",
