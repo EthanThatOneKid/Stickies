@@ -2,29 +2,45 @@ let EDITABLE_LIST, STICKIES, QUILL, userID;
 let canClick = true, currentChoice = -1;
 let pid = getUrlVariables().pid, panelTitle;
 let user_role = "bandit";
+let initialLoad = false;
+let updateListener;
 
-window.onload = init;
+auth.onAuthStateChanged(user => {
+  if (user) {
+    if (!initialLoad) {
+      (async () => {
+        updateListener = db.doc("panels/" + pid).onSnapshot({
+          includeMetadataChanges: true
+        }, init);
+      })();
+    }
+  } else {
+    createErrorMessage(401);
+  }
+});
 
 async function init() {
   await loadStickiesFromDatabase();
-
-  if (user_role == "bandit") createErrorMessage(401);
-  else if (user_role == "shared") console.log("You have had this panel shared with you.");
+  console.log(STICKIES.length);
+  if (user_role == "shared") console.log("You have had this panel shared with you.");
   else if (user_role == "owner") console.log("You own this panel.");
 
   initList();
 
-  QUILL = new Quill("#quill-txt-field", {
-    theme: "snow",
-    placeholder: "jot down a note",
-    bounds: document.getElementById("quill-container")
-  });
-  QUILL.on("text-change", () => {
-    let txt = QUILL.root.innerHTML;
-    updateList(currentChoice, {
-      "inner": txt
+  if (!initialLoad) {
+    initialLoad = true;
+    QUILL = new Quill("#quill-txt-field", {
+      theme: "snow",
+      placeholder: "jot down a note",
+      bounds: document.getElementById("quill-container")
     });
-  });
+    QUILL.on("text-change", () => {
+      let txt = QUILL.root.innerHTML;
+      updateList(currentChoice, {
+        "inner": txt
+      });
+    });
+  }
 
   document.getElementById("create-container").style.display = "none";
 }
@@ -117,10 +133,12 @@ async function loadStickiesFromDatabase() {
     for (let i = 0; i < stickies_.length; i++) {
       STICKIES.push(new Sticky(stickies_[i]));
     }
-    if (data.owner == auth.currentUser.email) user_role = "owner";
-    else if (new Set(data.shared).has(auth.currentUser.email)) user_role = "shared";
-    document.getElementById("user-settings").innerHTML = auth.currentUser.displayName[0];
-    document.getElementById("status-container").innerHTML = `role: ${user_role}`;
+    if (auth) {
+      if (data.owner == auth.currentUser.email) user_role = "owner";
+      else if (new Set(data.shared).has(auth.currentUser.email)) user_role = "shared";
+      document.getElementById("user-settings").innerHTML = auth.currentUser.email[0].toUpperCase();
+      document.getElementById("status-container").innerHTML = `role: ${user_role}`;
+    }
   } else {
     createErrorMessage(404);
     throw Error(`No data exists for ${pid}`);
@@ -262,6 +280,8 @@ function sharePanel() {
         if (doc.exists) {
           let data = doc.data();
           data.shared.push(pid);
+          data.shared = data.shared.filter((el, i, a) => i === a.indexOf(el));
+          console.log(data);
           transaction.update(friendRef, data);
           return data;
         } else {

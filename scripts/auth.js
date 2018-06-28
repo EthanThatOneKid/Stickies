@@ -13,7 +13,8 @@ function signup() {
     .then(() => {
       db.doc("accounts/" + em).set({
         owned: [],
-        shared: []
+        shared: [],
+        maxPanels: 5
       });
       document.getElementById("err-container").style.display = "none";
     })

@@ -18,15 +18,17 @@
 			<h1 id="page-title" style="vertical-align:middle;">Stickies</h1>
       <p style="background-color:white;border:1px solid black;display:inline-block;vertical-align:bottom;">console</p>
 		</td><td align="center">
-			<div style="horizontal-align:right; width:200px;">
+      <button style="display:inline-block;vertical-align:middle;" onclick="(()=>location.href='/docs')()">
+        docs
+      </button>
+			<div style="display:inline-block;horizontal-align:right; width:200px;">
         <a id="user-settings" href="/user">X</a>
-        <p id="panel-count"></p>
+        <a href="/shop"><p id="panel-count"></p></a>
       </div>
 		</td></tr></table>
   </header>
 
-  <button onclick="createNewPanel()">New Panel</button>
-  <br><br>
+  <button onclick="createNewPanel()">New Panel</button><br>
 
   <ul style="margin:0;"><li style="display:inline-block">
     <table style="padding:50px;padding-top:0px;">

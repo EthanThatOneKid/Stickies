@@ -2,31 +2,30 @@ let ownedSortableList, sharedSortableList;
 let ownedListEl, sharedListEl;
 let ownedList, sharedList;
 let hasInitiallyLoaded = false;
-let panelCount = 0;
+let panelCount = 0, maxPanels = 0;
+let shareListener;
 
 
 auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("user-settings").innerHTML = auth.currentUser.displayName[0];
-    /*
-    document.getElementById("success-msg").style.display = "block";
-    document.getElementById("failure-msg").style.display = "none";
-    */
     if (!hasInitiallyLoaded) {
-      (async () => {
-        await loadPanelsFromDatabase();
-        initMedia();
-        hasInitiallyLoaded = true;
-      })();
+
+      shareListener = db.doc("accounts/" + auth.currentUser.email).onSnapshot({
+        // Listen for document metadata changes
+        includeMetadataChanges: true
+      }, action);
     }
   } else {
     console.log("not signed in");
-    /*
-    document.getElementById("success-msg").style.display = "none";
-    document.getElementById("failure-msg").style.display = "block";
-    */
   }
 });
+
+async function action() {
+  await loadPanelsFromDatabase();
+  initMedia();
+  hasInitiallyLoaded = true;
+}
 
 function initMedia() {
   ownedSortableList = Sortable.create(ownedListEl, {
@@ -51,34 +50,48 @@ async function loadPanelsFromDatabase() {
   if (ref.exists) {
     const data = ref.data();
     panelCount = data.owned.length;
+    maxPanels = data.maxPanels;
     const owned_ = data.owned;
     const shared_ = data.shared;
-    // GET DATA FOR THE PANEL USING THE pid ***********************************************************************************
+
+    console.log(owned_.length);
 
     ownedListEl = document.createElement("ul");
     sharedListEl = document.createElement("ul");
+
+    let ownedPromises = sharedPromises = [];
     for (let i = 0; i < owned_.length; i++) {
-      let panelRef = await db.doc("panels/" + owned_[i]).get();
-      let gimmeLi = document.createElement("li");
-      gimmeLi.style.display = "inline-block";
-      gimmeLi.appendChild(new Panel({
-        title: panelRef.data().title,
-        owner: panelRef.data().owner,
-        pid: owned_[i]
-      }).el);
-      ownedListEl.appendChild(gimmeLi);
+      ownedPromises.push(new Promise(async (resolve, reject) => {
+        let ownedRef = await db.doc("panels/" + owned_[i]).get();
+        let gimmeLi = document.createElement("li");
+        gimmeLi.style.display = "inline-block";
+        gimmeLi.appendChild(new Panel({
+          title: ownedRef.data().title,
+          owner: ownedRef.data().owner,
+          pid: owned_[i]
+        }).el);
+        ownedListEl.appendChild(gimmeLi);
+        resolve();
+      }));
     }
     for (let i = 0; i < shared_.length; i++) {
-      let panelRef = await db.doc("panels/" + shared_[i]).get();
-      let gimmeLi = document.createElement("li");
-      gimmeLi.style.display = "inline-block";
-      gimmeLi.appendChild(new Panel({
-        title: panelRef.data().title,
-        owner: panelRef.data().owner,
-        pid: shared_[i]
-      }).el);
-      ownedListEl.appendChild(gimmeLi);
+      sharedPromises.push(new Promise(async (resolve, reject) => {
+        let sharedRef = await db.doc("panels/" + shared_[i]).get();
+        let gimmeLi = document.createElement("li");
+        gimmeLi.style.display = "inline-block";
+        gimmeLi.appendChild(new Panel({
+          title: sharedRef.data().title,
+          owner: sharedRef.data().owner,
+          pid: shared_[i]
+        }).el);
+        sharedListEl.appendChild(gimmeLi);
+        resolve();
+      }));
     }
+
+    await Promise.all(ownedPromises);
+    await Promise.all(sharedPromises);
+
     let noneP = document.createElement("p");
     noneP.innerHTML = "none";
     ownedListEl.style.margin = 0;
@@ -88,21 +101,22 @@ async function loadPanelsFromDatabase() {
 
     let ownedCont = document.getElementById("owned-panels");
     let sharedCont = document.getElementById("shared-panels");
+    ownedCont.innerHTML =  sharedCont.innerHTML = "";
     if (owned_.length > 0) ownedCont.appendChild(ownedListEl);
     else ownedCont.appendChild(noneP);
     if (shared_.length > 0) sharedCont.appendChild(sharedListEl);
     else sharedCont.appendChild(noneP);
     ownedCont.className = ownedCont.className.replace(/\bloader\b/g, "");
     sharedCont.className = sharedCont.className.replace(/\bloader\b/g, "");
-    document.getElementById("panel-count").innerHTML = `panels: ${panelCount}/5`;
-    if (panelCount >= 5) document.getElementById("panel-count").style.color = "red";
+    document.getElementById("panel-count").innerHTML = `panels: ${panelCount}/${maxPanels}`;
+    if (panelCount >= maxPanels) document.getElementById("panel-count").style.color = "red";
   } else {
     throw Error(`Error showing data from ${auth.currentUser.email}`);
   }
 }
 
 function createNewPanel() {
-  if (panelCount >= 5) {
+  if (panelCount >= maxPanels) {
     Ply.dialog("confirm",
       "You have reached your maximum amount of panel real-estate. To solve this, delete an old one or purchase some new ones."
     );
@@ -133,8 +147,8 @@ function createNewPanel() {
     ownedSortableList.el.appendChild(gimmeLi);
 
     panelCount++;
-    document.getElementById("panel-count").innerHTML = `panels: ${panelCount}/5`;
-    if (panelCount >= 5) document.getElementById("panel-count").style.color = "red";
+    document.getElementById("panel-count").innerHTML = `panels: ${panelCount}/${maxPanels}`;
+    if (panelCount >= maxPanels) document.getElementById("panel-count").style.color = "red";
 
     const ref = db.doc("accounts/" + auth.currentUser.email);
     db.runTransaction(transaction => {
