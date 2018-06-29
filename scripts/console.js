@@ -8,7 +8,7 @@ let shareListener;
 
 auth.onAuthStateChanged(user => {
   if (user) {
-    document.getElementById("user-settings").innerHTML = auth.currentUser.displayName[0];
+    document.getElementById("user-settings").innerHTML = auth.currentUser.email[0].toUpperCase();
     if (!hasInitiallyLoaded) {
 
       shareListener = db.doc("accounts/" + auth.currentUser.email).onSnapshot({
