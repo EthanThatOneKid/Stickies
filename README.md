@@ -4,7 +4,7 @@ Edit 06/27/2018: Beta has been completed!
 
 # To-Do
 <ul>
-  <li>Alpha Release</li>
+  <li>Put ads on the bottom</li>
   <li>'go-back' button in panel page</li>
 </ul>
 
