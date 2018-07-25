@@ -1,6 +1,7 @@
 # Stickies
-Sticky Note webapp for light-weight and casual usage.
-Edit 06/27/2018: Beta has been completed!
+Sticky Note webapp for light-weight and casual usage.<br>
+Edit 06/27/2018: Beta has been completed!<br>
+The full project can be found [here](http://stickies.ethandavidson.com/)
 
 # To-Do
 <ul>
