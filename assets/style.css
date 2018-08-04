@@ -9,6 +9,18 @@ body {
   font-family: 'Work Sans', sans-serif;
 }
 
+.docP {
+  max-width: 50vw;
+  text-indent: 20px;
+  margin-left: 5vw;
+}
+
+.docH {
+  font-weight: bold;
+  font-size: 2em;
+  margin-left: 5vw;
+}
+
 #page-header {
   background-color: #008CBA;
   vertical-align: middle;
