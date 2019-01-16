@@ -1,6 +1,8 @@
 # Stickies
+
 ![version beta](https://img.shields.io/badge/version-beta-green.svg)
 ![release 6/27/18](https://img.shields.io/badge/release-6/27/2018-blue.svg)
+
 The fully functioning webapp can be found [here](http://stickies.ethandavidson.com/).
 
 ## About
@@ -9,5 +11,5 @@ This was the very first complete webapp I had created. I created it using only h
 ## Features
 * Account authoritization/security using Firebase
 * __Create__ *panels* for different topics
-* __Populate__ *panels* with *stickies* of any color and text.
-* __Share__ *panels* with friends who also have an account.
+* __Populate__ *panels* with *stickies* of any color and text
+* __Share__ *panels* with friends who also have an account
